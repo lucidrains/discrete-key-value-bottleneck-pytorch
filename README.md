@@ -1,4 +1,4 @@
-## Discrete Key / Value Bottleneck - Pytorch
+## Discrete Key / Value Bottleneck - Pytorch (wip)
 
 Implementation of <a href="https://arxiv.org/abs/2207.11240">Discrete Key / Value Bottleneck</a>, in Pytorch. It may also include an extension into product quantization into a larger memory space.
 
