@@ -67,7 +67,7 @@ vit = Extractor(vit, return_embeddings_only = True)
 
 from discrete_key_value_bottleneck_pytorch import DiscreteKeyValueBottleneck
 
-key_value_bottleneck = DiscreteKeyValueBottleneck(
+enc_with_bottleneck = DiscreteKeyValueBottleneck(
     encoder = vit,         # pass the frozen encoder into the bottleneck
     dim = 512,             # input dimension
     num_memories = 256,    # number of memories
@@ -75,9 +75,9 @@ key_value_bottleneck = DiscreteKeyValueBottleneck(
     decay = 0.9,           # the exponential moving average decay, lower means the keys will change faster
 )
 
-images = torch.randn(1, 3, 256, 256)  # from pretrained encoder
+images = torch.randn(1, 3, 256, 256)  # input to encoder
 
-memories = key_value_bottleneck(images) # (1, 64, 2048)   # (64 patches)
+memories = enc_with_bottleneck(images) # (1, 64, 2048)   # (64 patches)
 ```
 
 ## Citations
