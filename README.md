@@ -38,12 +38,6 @@ You can also pass the pretrained encoder to the bottleneck and it will automatic
 $ pip install vit-pytorch
 ```
 
-then
-
-```bash
-$ pip install vit-pytorch>=0.35.8
-```
-
 Then
 
 ```python
