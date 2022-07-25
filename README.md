@@ -40,7 +40,6 @@ $ pip install vit-pytorch
 
 then
 
-```python
 ```bash
 $ pip install vit-pytorch>=0.35.8
 ```
