@@ -20,10 +20,12 @@ class DiscreteKeyValueBottleneck(nn.Module):
         dim,
         *,
         num_memories,
+        encoder = None,
         dim_memory = None,
         **kwargs
     ):
         super().__init__()
+        self.encoder = encoder
 
         self.vq = VectorQuantize(
             dim = dim,
@@ -34,7 +36,14 @@ class DiscreteKeyValueBottleneck(nn.Module):
         dim_memory = default(dim_memory, dim)
         self.values = nn.Parameter(torch.randn(num_memories, dim_memory))
 
-    def forward(self, x):
+    def forward(self, x, **kwargs):
+
+        if exists(self.encoder):
+            self.encoder.eval()
+            with torch.no_grad():
+                x = self.encoder(x, **kwargs)
+                x.detach_()
+
         _, memory_indices, _ = self.vq(x)
 
         memories = self.values[memory_indices]
