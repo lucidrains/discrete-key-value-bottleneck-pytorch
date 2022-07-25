@@ -36,7 +36,7 @@ class DiscreteKeyValueBottleneck(nn.Module):
             **kwargs
         )
 
-        dim_memory = default(dim_memory, dim)
+        dim_memory = default(dim_memory, dim // num_memory_codebooks)
         self.values = nn.Parameter(torch.randn(num_memory_codebooks, num_memories, dim_memory))
 
     def forward(self, x, **kwargs):
