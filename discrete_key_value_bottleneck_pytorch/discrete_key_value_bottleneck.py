@@ -20,21 +20,24 @@ class DiscreteKeyValueBottleneck(nn.Module):
         dim,
         *,
         num_memories,
+        num_memory_codebooks = 1,
         encoder = None,
         dim_memory = None,
         **kwargs
     ):
         super().__init__()
         self.encoder = encoder
+        assert (dim % num_memory_codebooks) == 0, 'embedding dimension must be divisible by number of codes'
 
         self.vq = VectorQuantize(
             dim = dim,
             codebook_size = num_memories,
+            heads = num_memory_codebooks,
             **kwargs
         )
 
         dim_memory = default(dim_memory, dim)
-        self.values = nn.Parameter(torch.randn(num_memories, dim_memory))
+        self.values = nn.Parameter(torch.randn(num_memory_codebooks, num_memories, dim_memory))
 
     def forward(self, x, **kwargs):
 
@@ -46,5 +49,14 @@ class DiscreteKeyValueBottleneck(nn.Module):
 
         _, memory_indices, _ = self.vq(x)
 
-        memories = self.values[memory_indices]
-        return memories
+        if memory_indices.ndim == 2:
+            memory_indices = rearrange(memory_indices, '... -> ... 1')
+
+        memory_indices = rearrange(memory_indices, 'b n h -> b h n')
+
+        values = repeat(self.values, 'h n d -> b h n d', b = memory_indices.shape[0])
+        memory_indices = repeat(memory_indices, 'b h n -> b h n d', d = values.shape[-1])
+
+        memories = values.gather(2, memory_indices)
+
+        return rearrange(memories, 'b h n d -> b n (h d)')

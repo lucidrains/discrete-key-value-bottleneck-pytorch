@@ -17,17 +17,18 @@ import torch
 from discrete_key_value_bottleneck_pytorch import DiscreteKeyValueBottleneck
 
 key_value_bottleneck = DiscreteKeyValueBottleneck(
-    dim = 512,             # input dimension
-    num_memories = 256,    # number of memories
-    dim_memory = 2048,     # dimension of the output memories
-    decay = 0.9,           # the exponential moving average decay, lower means the keys will change faster
+    dim = 512,                  # input dimension
+    num_memory_codebooks = 2,   # number of memory codebook, embedding is split into 2 pieces of 256, 256, quantized, outputs 256, 256, flattened together to 512
+    num_memories = 256,         # number of memories
+    dim_memory = 256,           # dimension of the output memories
+    decay = 0.9,                # the exponential moving average decay, lower means the keys will change faster
 )
 
 embeds = torch.randn(1, 1024, 512)  # from pretrained encoder
 
 memories = key_value_bottleneck(embeds)
 
-memories.shape # (1, 1024, 2048)  # (batch, seq, memory / values dimension)
+memories.shape # (1, 1024, 512)  # (batch, seq, memory / values dimension)
 
 # now you can use the memories for the downstream decoder
 ```
@@ -52,7 +53,7 @@ vit = SimpleViT(
     image_size = 256,
     patch_size = 32,
     num_classes = 1000,
-    dim = 1024,
+    dim = 512,
     depth = 6,
     heads = 16,
     mlp_dim = 2048
@@ -64,6 +65,8 @@ vit = Extractor(vit, return_embeddings_only = True)
 
 # then
 
+from discrete_key_value_bottleneck_pytorch import DiscreteKeyValueBottleneck
+
 key_value_bottleneck = DiscreteKeyValueBottleneck(
     encoder = vit,         # pass the frozen encoder into the bottleneck
     dim = 512,             # input dimension
@@ -74,7 +77,7 @@ key_value_bottleneck = DiscreteKeyValueBottleneck(
 
 images = torch.randn(1, 3, 256, 256)  # from pretrained encoder
 
-memories = key_value_bottleneck(embeds) # (1, 64, 2048)   # (64 patches)
+memories = key_value_bottleneck(images) # (1, 64, 2048)   # (64 patches)
 ```
 
 ## Citations
