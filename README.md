@@ -80,6 +80,10 @@ images = torch.randn(1, 3, 256, 256)  # input to encoder
 memories = enc_with_bottleneck(images) # (1, 64, 2048)   # (64 patches)
 ```
 
+## Todo
+
+- [ ] work off multiple encoder's embedding spaces, and allow for shared or separate memory spaces, to aid exploration in this research
+
 ## Citations
 
 ```bibtex
