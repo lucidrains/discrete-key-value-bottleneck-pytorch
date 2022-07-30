@@ -33,6 +33,7 @@ class DiscreteKeyValueBottleneck(nn.Module):
             dim = dim,
             codebook_size = num_memories,
             heads = num_memory_codebooks,
+            separate_codebook_per_head = True,
             **kwargs
         )
 
