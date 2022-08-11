@@ -40,7 +40,12 @@ class DiscreteKeyValueBottleneck(nn.Module):
         dim_memory = default(dim_memory, dim // num_memory_codebooks)
         self.values = nn.Parameter(torch.randn(num_memory_codebooks, num_memories, dim_memory))
 
-    def forward(self, x, **kwargs):
+    def forward(
+        self,
+        x,
+        return_intermediates = False,
+        **kwargs
+    ):
 
         if exists(self.encoder):
             self.encoder.eval()
@@ -48,7 +53,9 @@ class DiscreteKeyValueBottleneck(nn.Module):
                 x = self.encoder(x, **kwargs)
                 x.detach_()
 
-        _, memory_indices, _ = self.vq(x)
+        vq_out = self.vq(x)
+
+        quantized, memory_indices, commit_loss = vq_out
 
         if memory_indices.ndim == 2:
             memory_indices = rearrange(memory_indices, '... -> ... 1')
@@ -60,4 +67,9 @@ class DiscreteKeyValueBottleneck(nn.Module):
 
         memories = values.gather(2, memory_indices)
 
-        return rearrange(memories, 'b h n d -> b n (h d)')
+        flattened_memories = rearrange(memories, 'b h n d -> b n (h d)')
+
+        if return_intermediates:
+            return flattened_memories, vq_out
+
+        return flattened_memories
