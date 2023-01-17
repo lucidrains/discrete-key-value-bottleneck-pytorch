@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
   name = 'discrete-key-value-bottleneck-pytorch',
   packages = find_packages(exclude=[]),
-  version = '0.0.6',
+  version = '0.0.7',
   license='MIT',
   description = 'Discrete Key / Value Bottleneck - Pytorch',
   author = 'Phil Wang',
@@ -19,7 +19,7 @@ setup(
   ],
   install_requires=[
     'einops>=0.4',
-    'vector-quantize-pytorch>=0.9.0',
+    'vector-quantize-pytorch>=0.10.14',
     'torch>=1.6',
   ],
   classifiers=[
