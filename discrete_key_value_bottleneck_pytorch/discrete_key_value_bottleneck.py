@@ -23,22 +23,36 @@ class DiscreteKeyValueBottleneck(nn.Module):
         num_memory_codebooks = 1,
         encoder = None,
         dim_memory = None,
+        random_project_embed = True,  # in update to paper, they do a random projection of embedding
+        embed_dim = None,
         **kwargs
     ):
         super().__init__()
         self.encoder = encoder
-        assert (dim % num_memory_codebooks) == 0, 'embedding dimension must be divisible by number of codes'
+        embed_dim = default(embed_dim, dim)
+
+        assert (embed_dim % num_memory_codebooks) == 0, f'embedding dimension {embed_dim} must be divisible by number of codes {num_memory_codebooks}'
 
         self.vq = VectorQuantize(
-            dim = dim,
+            dim = embed_dim,
             codebook_size = num_memories,
             heads = num_memory_codebooks,
             separate_codebook_per_head = True,
             **kwargs
         )
 
-        dim_memory = default(dim_memory, dim // num_memory_codebooks)
+        dim_memory = default(dim_memory, embed_dim // num_memory_codebooks)
         self.values = nn.Parameter(torch.randn(num_memory_codebooks, num_memories, dim_memory))
+
+        self.random_project_embed = random_project_embed
+
+        if not random_project_embed:
+            return
+
+        rand_proj = torch.empty(dim, embed_dim)
+        nn.init.xavier_normal_(rand_proj)
+
+        self.register_buffer('rand_proj', rand_proj)
 
     def forward(
         self,
@@ -52,6 +66,9 @@ class DiscreteKeyValueBottleneck(nn.Module):
             with torch.no_grad():
                 x = self.encoder(x, **kwargs)
                 x.detach_()
+
+        if self.random_project_embed:
+            x = einsum('b n d, d e -> b n e', x, self.rand_proj)
 
         vq_out = self.vq(x)
 
