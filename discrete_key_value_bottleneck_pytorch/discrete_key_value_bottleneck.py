@@ -20,6 +20,7 @@ class DiscreteKeyValueBottleneck(nn.Module):
         dim,
         *,
         num_memories,
+        dim_embed = None,
         num_memory_codebooks = 1,
         encoder = None,
         dim_memory = None,
@@ -28,6 +29,8 @@ class DiscreteKeyValueBottleneck(nn.Module):
     ):
         super().__init__()
         self.encoder = encoder
+        dim_embed = default(dim_embed, dim)
+        self.dim_embed = dim_embed
 
         self.vq = VectorQuantize(
             dim = dim * num_memory_codebooks,
@@ -40,7 +43,7 @@ class DiscreteKeyValueBottleneck(nn.Module):
         dim_memory = default(dim_memory, dim)
         self.values = nn.Parameter(torch.randn(num_memory_codebooks, num_memories, dim_memory))
 
-        rand_proj = torch.empty(num_memory_codebooks, dim, dim)
+        rand_proj = torch.empty(num_memory_codebooks, dim_embed, dim)
         nn.init.xavier_normal_(rand_proj)
 
         self.register_buffer('rand_proj', rand_proj)
@@ -60,6 +63,8 @@ class DiscreteKeyValueBottleneck(nn.Module):
             with torch.no_grad():
                 x = self.encoder(x, **kwargs)
                 x.detach_()
+
+        assert x.shape[-1] == self.dim_embed, f'encoding has a dimension of {x.shape[-1]} but dim_embed (defaults to dim) is set to {self.dim_embed} on init'
 
         x = einsum('b n d, c d e -> b n c e', x, self.rand_proj)
         x = rearrange(x, 'b n c e -> b n (c e)')
