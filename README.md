@@ -18,9 +18,9 @@ from discrete_key_value_bottleneck_pytorch import DiscreteKeyValueBottleneck
 
 key_value_bottleneck = DiscreteKeyValueBottleneck(
     dim = 512,                  # input dimension
+    dim_memory = 512,           # output dimension - or dimension of each memories for all heads (defaults to same as input)
     num_memory_codebooks = 2,   # number of memory codebook, embedding is split into 2 pieces of 256, 256, quantized, outputs 256, 256, flattened together to 512
     num_memories = 256,         # number of memories
-    dim_memory = 256,           # dimension of the output memories
     decay = 0.9,                # the exponential moving average decay, lower means the keys will change faster
 )
 
